@@ -1,0 +1,108 @@
+<!-- 
+Copyright (C) 2024  Zachary Kissel
+ 
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by 
+the Free Software Foundation, either version 3 of the License, or 
+(at your option) any later version.
+ 
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of 
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License 
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<project name="Padding Oracle Attack" default="dist" basedir=".">
+  <description>
+   CBC padding oracle attack
+  </description>
+
+  <!-- set global properties for this build -->
+  <property name="src" location="src"/>
+  <property name="testsrc" location="tests"/>
+  <property name="build" location="build"/>
+  <property name="dist" location="dist"/>
+  <property name="api" location="api"/>
+  <property name="lib" location="lib"/>
+  <property name="jarname" value="cbc-attack.jar" />
+
+  <target name="init">    <!-- Create the build directory structure used by compile -->
+    <mkdir dir="${build}"/>
+    <!-- <mkdir dir="${build}/tests" /> -->
+    <mkdir dir="${api}"/>
+  </target>
+
+  <!-- Compile the Java code from ${src} into ${build} -->
+  <target name="compile" depends="init"
+        description="Compile source code">
+    <javac includeantruntime="false"
+      srcdir="${src}" destdir="${build}" debug="true"
+      debuglevel="lines,vars,source">
+      <compilerarg value="-Xlint:deprecation,unchecked" />
+      <classpath>
+          <fileset dir="${lib}" includes="**/*.jar"/>  
+      </classpath>
+    </javac>
+  </target>
+
+    <!-- Compile tests-->
+    <target name="testcompile" depends="dist" description="Compile tests">
+    <javac includeantruntime="false"
+      srcdir="${testsrc}" destdir="${build}" debug="true"
+      debuglevel="lines,vars,source">
+      <compilerarg value="-Xlint:deprecation,unchecked" />
+      <classpath>
+          <fileset dir="${lib}" includes="**/*.jar"/>      
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="dist" depends="compile"
+        description="Generate the jar file for the library">
+    <!-- Create the distribution directory -->
+    <mkdir dir="${dist}"/>
+
+    <!-- Put everything in ${build} into the csc5155.jar file -->
+    <jar jarfile="${dist}/${jarname}" basedir="${build}">
+      <manifest>
+        <attribute name="Main-Class" value="PaddingAttack" />
+      </manifest>
+      <zipfileset src="lib/merrimackutil.jar" excludes="META-INF/*.SF" />
+    </jar>
+  </target>
+
+
+ <!-- JUnit test target. -->
+  <target name="test" depends="testcompile">
+    <junit printsummary="off" fork="true" haltonfailure="no">
+      <classpath>
+        <fileset dir="${lib}" includes="**/*.jar" />
+        <path location="${build}" />
+        <pathelement location="${build}"/>
+      </classpath>
+      <formatter type="brief" usefile="false" />
+      <batchtest>
+        <fileset dir="${build}" includes="*.class" />
+      </batchtest>
+      </junit>
+   </target>
+
+   <target name="api" depends="init" description="generate javadoc">
+    <javadoc sourcepath="${src}" destdir="${api}"/>
+  </target>
+
+   <!-- Run target for Netbeans and other IDEs supporting ant -->
+  <target name="run" depends="dist" description="Run jar file">
+    <java jar="${dist}/${jarname}" fork="true" />
+  </target>
+
+
+  <target name="clean" description="clean up">
+    <!-- Delete the ${build} and ${dist} directory trees -->
+    <delete dir="${build}"/>
+    <delete dir="${dist}"/>
+    <delete dir="${api}"/>
+  </target>
+</project>
