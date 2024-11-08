@@ -242,12 +242,10 @@ public class PaddingAttack {
     ArrayList<Block> blocks = new ArrayList<>();
     byte[] iv = Base64.getDecoder().decode(ivBase64);
     byte[] ciphertext = Base64.getDecoder().decode(ciphertextBase64);
-
     // Build a list of blocks.
     blocks.add(new Block(iv));
     for (int i = 0; i < (ciphertext.length / 16); i++)
       blocks.add(new Block(Arrays.copyOfRange(ciphertext, i * 16, (i * 16) + 16)));
-
     return blocks;
   }
 }
